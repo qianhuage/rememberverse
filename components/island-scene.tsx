@@ -503,24 +503,6 @@ export default function IslandScene({
         root.add(l);
       }
     }
-    if (island.photo) {
-      const loader = new THREE.TextureLoader();
-      loader.load(`/api/photos/${island.photo}`, (texture) => {
-        if (disposed) {
-          texture.dispose();
-          return;
-        }
-        texture.colorSpace = THREE.SRGBColorSpace;
-        mesh(new THREE.BoxGeometry(1.04, 1.34, 0.1), gold, -0.6, 0.9, 0.6);
-        mesh(
-          new THREE.PlaneGeometry(0.92, 1.22),
-          new THREE.MeshBasicMaterial({ map: texture }),
-          -0.6,
-          0.9,
-          0.66,
-        );
-      });
-    }
     // A skinned animal, with actual leg, tail, and body animation.
     const fox = new THREE.Group();
     fox.position.set(0.25, 0.035, 3.1);
