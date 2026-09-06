@@ -13,22 +13,26 @@ export default function IslandScene({
   candles = 0,
   flowers = 0,
   modelUrl,
+  characterUrl,
   view = 'orbit',
 }: {
   island: Island;
   candles?: number;
   flowers?: number;
   modelUrl?: string;
+  characterUrl?: string;
   view?: string;
 }) {
   const host = useRef<HTMLDivElement>(null),
     [failed, setFailed] = useState(false);
+  const [characterError, setCharacterError] = useState(false);
   const viewRef = useRef(view);
   useEffect(() => {
     viewRef.current = view;
   }, [view]);
   useEffect(() => {
     if (!host.current) return;
+    setCharacterError(false);
     const el = host.current;
     let renderer: THREE.WebGLRenderer;
     try {
@@ -524,17 +528,65 @@ export default function IslandScene({
     const demoDog = createDog();
     fox.add(demoDog.object);
     let generatedDog: ReturnType<typeof rigDog> | undefined;
-    new GLTFLoader().load(
-      '/demo/golden-dog-standing.glb',
-      (gltf) => {
-        if (disposed) return;
-        generatedDog = rigDog(gltf.scene);
-        fox.add(generatedDog.object);
-        demoDog.object.visible = false;
-      },
-      undefined,
-      () => {},
-    );
+    let characterMixer: THREE.AnimationMixer | undefined;
+    let walkAction: THREE.AnimationAction | undefined;
+    let idleAction: THREE.AnimationAction | undefined;
+    let characterReady = false;
+    if (characterUrl) {
+      demoDog.object.visible = false;
+      new GLTFLoader().load(
+        characterUrl,
+        (gltf) => {
+          if (disposed) return;
+          const model = gltf.scene,
+            bounds = new THREE.Box3().setFromObject(model),
+            size = bounds.getSize(new THREE.Vector3()),
+            center = bounds.getCenter(new THREE.Vector3());
+          const scale = 1.8 / Math.max(size.y, 0.01);
+          model.scale.setScalar(scale);
+          model.position.set(
+            -center.x * scale,
+            -bounds.min.y * scale,
+            -center.z * scale,
+          );
+          model.traverse((o) => {
+            if (o instanceof THREE.Mesh) {
+              o.castShadow = true;
+              o.receiveShadow = true;
+            }
+          });
+          fox.add(model);
+          characterReady = true;
+          if (gltf.animations.length) {
+            characterMixer = new THREE.AnimationMixer(model);
+            const walk = gltf.animations.find((a) => /walk/i.test(a.name));
+            const idle = gltf.animations.find((a) =>
+              /idle|stand/i.test(a.name),
+            );
+            if (walk) walkAction = characterMixer.clipAction(walk);
+            if (idle) {
+              idleAction = characterMixer.clipAction(idle);
+              idleAction.play();
+            }
+          }
+        },
+        undefined,
+        () => {
+          setCharacterError(true);
+        },
+      );
+    } else
+      new GLTFLoader().load(
+        '/demo/golden-dog-standing.glb',
+        (gltf) => {
+          if (disposed) return;
+          generatedDog = rigDog(gltf.scene);
+          fox.add(generatedDog.object);
+          demoDog.object.visible = false;
+        },
+        undefined,
+        () => {},
+      );
     let path: Point[] = [],
       pause = 1.5,
       manualUntil = 0;
@@ -727,6 +779,11 @@ export default function IslandScene({
       if (keys.has('s') || keys.has('arrowdown')) direction.sub(forward);
       if (keys.has('d') || keys.has('arrowright')) direction.add(right);
       if (keys.has('a') || keys.has('arrowleft')) direction.sub(right);
+      if (characterUrl && (!characterReady || !walkAction)) {
+        direction.set(0, 0, 0);
+        path = [];
+        manualUntil = performance.now() + 60000;
+      }
       const speed = keys.has('shift') ? 2.2 : 0.9;
       if (direction.lengthSq()) {
         direction.normalize();
@@ -776,6 +833,14 @@ export default function IslandScene({
             Math.sin(angle - fox.rotation.y),
             Math.cos(angle - fox.rotation.y),
           ) * Math.min(1, dt * 10);
+      }
+      if (characterMixer) {
+        characterMixer.update(dt);
+        if (walkAction) {
+          walkAction.play();
+          walkAction.setEffectiveWeight(moving ? 1 : 0);
+          idleAction?.setEffectiveWeight(moving ? 0 : 1);
+        }
       }
       if (generatedDog) generatedDog.update(time, moving, speed > 1);
       else demoDog.update(time, moving, speed > 1);
@@ -832,6 +897,7 @@ export default function IslandScene({
       cancelAnimationFrame(frame);
       ro.disconnect();
       controls.dispose();
+      characterMixer?.stopAllAction();
       renderer.domElement.removeEventListener('pointerdown', pointerDown);
       renderer.domElement.removeEventListener('pointerup', pointerUp);
       window.removeEventListener('keydown', keyDown);
@@ -865,6 +931,7 @@ export default function IslandScene({
     candles,
     flowers,
     modelUrl,
+    characterUrl,
   ]);
   return (
     <div className="scene-host" ref={host}>
@@ -876,6 +943,12 @@ export default function IslandScene({
       >
         3D credits
       </a>
+      {characterError && (
+        <div className="character-load-error">
+          The character could not load. Try reopening the island or download the
+          model.
+        </div>
+      )}
       {failed && (
         <div className="scene-fallback">
           <img src="/island.png" alt="Memorial garden" />

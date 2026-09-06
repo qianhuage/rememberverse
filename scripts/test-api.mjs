@@ -66,6 +66,25 @@ assert.equal(
   ).status,
   404,
 );
+assert.equal(
+  (
+    await request(`/islands/${id}/generate`, {
+      provider: 'character',
+      photo: 'missing-reference',
+    })
+  ).status,
+  400,
+);
+assert.equal(
+  (
+    await request(
+      `/islands/${id}/generate`,
+      { provider: 'character', photo: photo.data.id },
+      'mc_session=00000000-0000-4000-8000-000000000001',
+    )
+  ).status,
+  404,
+);
 for (const kind of ['candle', 'flower', 'note'])
   assert.equal(
     (

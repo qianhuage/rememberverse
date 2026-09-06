@@ -79,6 +79,8 @@ export default function Home() {
       mint: false,
       convex: false,
     });
+  const [characterPhoto, setCharacterPhoto] = useState('');
+  const [characterPreview, setCharacterPreview] = useState('');
   const [demo, setDemo] = useState<any>(null);
   const fallback = useCallback(() => {
     setView('orbit');
@@ -173,6 +175,8 @@ export default function Home() {
     setJobs([]);
     setScreen('visit');
     setView('orbit');
+    setCharacterPhoto('');
+    setCharacterPreview('');
     if (i.id !== 'sample') {
       try {
         const d = await api(`islands/${i.id}`);
@@ -286,6 +290,31 @@ export default function Home() {
       setBusy('');
     }
   }
+  async function uploadCharacter(file?: File) {
+    if (!file) return;
+    if (
+      !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+      file.size > 8 * 1024 * 1024
+    ) {
+      setError('Choose a JPG, PNG or WebP image under 8 MB.');
+      return;
+    }
+    setBusy('character-upload');
+    setError('');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const r = await fetch('/api/photos', { method: 'POST', body: form });
+      const d = (await r.json()) as { id: string; url: string; error?: string };
+      if (!r.ok) throw new Error(d.error);
+      setCharacterPhoto(d.id);
+      setCharacterPreview(d.url);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy('');
+    }
+  }
   async function generate(provider: string) {
     if (island.id === 'sample') {
       start();
@@ -294,7 +323,12 @@ export default function Home() {
     setBusy(provider);
     setError('');
     try {
-      const d = await api(`islands/${island.id}/generate`, { provider });
+      const d = await api(`islands/${island.id}/generate`, {
+        provider,
+        ...(provider === 'character'
+          ? { photo: characterPhoto || island.photo }
+          : {}),
+      });
       setJobs((v) => [...v.filter((j) => j.provider !== provider), d.job]);
       if (d.job.status === 'failed') setError(d.job.error);
       else
@@ -324,7 +358,14 @@ export default function Home() {
     mintWorld?.assets?.spzUrls?.['500k'] ||
     mintWorld?.assets?.radUrl ||
     (island.id === 'sample' ? demo?.splatUrl : null);
-  const companionUrl = model?.model_url || demo?.modelUrl;
+  const characterJob = jobs.find((j) => j.provider === 'character');
+  const character =
+    characterJob?.status === 'complete' && characterJob.result
+      ? JSON.parse(characterJob.result)
+      : null;
+  const characterUrl =
+    character?.assets?.glbUrl || character?.assets?.optimizedGlbUrl;
+  const companionUrl = characterUrl || model?.model_url || demo?.modelUrl;
   const candles = memories.filter((m) => m.kind === 'candle').length,
     flowers = memories.filter((m) => m.kind === 'flower').length;
   return (
@@ -502,6 +543,7 @@ export default function Home() {
                 candles={candles}
                 flowers={flowers}
                 modelUrl={companionUrl}
+                characterUrl={characterUrl}
                 view={view}
               />
             )}
@@ -517,7 +559,9 @@ export default function Home() {
             <span className="glass scene-hint">
               {view === 'immersive'
                 ? 'W A S D to move · Drag to look'
-                : 'Click a path to walk · W A S D to guide · Drag to orbit'}
+                : characterUrl
+                  ? 'Drag to explore your character · Scroll to zoom'
+                  : 'Click a path to walk · W A S D to guide · Drag to orbit'}
             </span>
           </div>
           <div className="memorial-card glass">
@@ -609,6 +653,86 @@ export default function Home() {
             </Button>
           </div>
           <aside className="memory-drawer">
+            <section className="character-creator">
+              <h3>Bring a character to life</h3>
+              <p className="small-copy">
+                Upload a photo or character sheet. A clear, full-body view works
+                best.
+              </p>
+              {island.id === 'sample' ? (
+                <Button onClick={start}>
+                  Create an island to add yours <Plus size={15} />
+                </Button>
+              ) : (
+                <>
+                  <label className="character-upload">
+                    {characterPreview ? (
+                      <img src={characterPreview} alt="Character reference" />
+                    ) : (
+                      <UserRound size={25} />
+                    )}
+                    <span>
+                      {characterPreview
+                        ? 'Change reference image'
+                        : 'Upload character image'}
+                      <small>JPG, PNG or WebP · up to 8 MB</small>
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={!!busy || !!characterJob}
+                      onChange={(e) => {
+                        void uploadCharacter(e.target.files?.[0]);
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                  <Button
+                    className="dark"
+                    disabled={
+                      !!busy ||
+                      !!characterJob ||
+                      !cap.mint ||
+                      (!characterPhoto && !island.photo)
+                    }
+                    onClick={() => generate('character')}
+                  >
+                    {characterJob?.status === 'complete' ? (
+                      <Check size={16} />
+                    ) : characterJob && characterJob.status !== 'failed' ? (
+                      <LoaderCircle size={16} className="spin" />
+                    ) : (
+                      <Sparkles size={16} />
+                    )}
+                    {characterJob?.status === 'complete'
+                      ? 'Character added to island'
+                      : characterJob?.status === 'failed'
+                        ? 'Character needs attention'
+                        : characterJob
+                          ? 'Creating your character…'
+                          : 'Generate 3D character'}
+                  </Button>
+                  <small className="character-help">
+                    {characterJob?.error ||
+                      (characterUrl
+                        ? 'Drag to explore your character on the island.'
+                        : characterJob
+                          ? 'You can leave and return while it takes shape.'
+                          : 'Mint · uses generation credits. One character per island.')}
+                  </small>
+                  {characterUrl && (
+                    <a
+                      className="result-link"
+                      href={characterUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Download character <Download size={15} />
+                    </a>
+                  )}
+                </>
+              )}
+            </section>
             <h3>A little more of their world</h3>
             <p className="small-copy">
               Turn their photo into a 3D keepsake, or create a world shaped by

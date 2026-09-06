@@ -36,3 +36,9 @@ Convex source is optional: deploy `convex/`, set the same `CONVEX_BRIDGE_SECRET`
 `node scripts/test-api.mjs` checks upload validation, persistence, and cross-session authorization against the local server. Add `--generate` only when intentionally spending provider generation credits. `npx tsc --noEmit` checks types; `npm run build` builds the Worker and client. Full browser visual QA is not claimed unless performed.
 
 See [the presentation kit](docs/HACKATHON.md) for track fit, a two-minute script, demo reliability, and accurate provider attribution.
+
+## Image-to-character creation
+
+On a saved island, upload a JPG, PNG or WebP reference under 8 MB in **Bring a character to life**, then choose **Generate 3D character**. Mint produces a textured GLB through a durable generation job. The model appears on the island and can be downloaded. Reference photos remain session-private in R2; provider requests and keys stay on the server. One character job is supported per island.
+
+Use a clear full-body figure for best results. Character sheets with multiple portraits may need cropping before upload. Arbitrary generated meshes are displayed in their generated pose; embedded walk/idle animation clips are used when available. The prepared golden dog has a separate custom animation rig.

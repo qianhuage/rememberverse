@@ -207,8 +207,19 @@ async function handle(req: Request) {
     if (path[2] === 'generate' && method === 'POST') {
       const b = (await req.json()) as Record<string, unknown>,
         provider = text(b.provider, 20);
-      if (!['world', 'tripo', 'mint'].includes(provider))
+      if (!['world', 'tripo', 'mint', 'character'].includes(provider))
         return out({ error: 'Unknown provider' }, 400);
+      const characterPhoto =
+        provider === 'character' ? text(b.photo, 40) || island.photo : null;
+      if (
+        provider === 'character' &&
+        (!characterPhoto ||
+          !(await db()
+            .prepare('SELECT id FROM photos WHERE id=? AND owner=?')
+            .bind(characterPhoto, owner)
+            .first()))
+      )
+        return out({ error: 'Upload a character reference image first.' }, 400);
       const key =
         provider === 'world'
           ? runtime().WLT_API_KEY
@@ -340,6 +351,44 @@ async function handle(req: Request) {
             },
           );
           operation = r.data?.task_id;
+        } else if (provider === 'character') {
+          const file = await runtime().PHOTOS.get(String(characterPhoto));
+          if (!file)
+            throw new Error('The character reference could not be found.');
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          let binary = '';
+          for (let offset = 0; offset < bytes.length; offset += 8192)
+            binary += String.fromCharCode(
+              ...bytes.subarray(offset, offset + 8192),
+            );
+          const headers = {
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+          };
+          const reference = await remote(`${M}/reference-images`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              base64Data: btoa(binary),
+              fileName: `character-reference.${file.httpMetadata?.contentType === 'image/jpeg' ? 'jpg' : file.httpMetadata?.contentType === 'image/webp' ? 'webp' : 'png'}`,
+              contentType: file.httpMetadata?.contentType || 'image/png',
+              name: `${island.name} character reference`,
+            }),
+          });
+          if (!reference.url)
+            throw new Error('The character reference could not be prepared.');
+          const r = await remote(`${M}/models:generate`, {
+            method: 'POST',
+            headers: { ...headers, 'Idempotency-Key': id },
+            body: JSON.stringify({
+              name: `${island.name} character`,
+              imageUrl: reference.url,
+              prompt: `Create one complete textured 3D ${island.kind === 'pet' ? 'animal' : 'human'} character from the main full-body figure in this reference. Preserve their face, hairstyle, clothing, colors and proportions. If this is a character sheet, use the largest full-body view as the character and the smaller portraits only as facial reference; do not create extra heads or people. Single character, feet on ground, neutral standing pose, no background or pedestal.`,
+              generationMode: 'auto',
+              generationPreset: 'standard',
+            }),
+          });
+          operation = r.id || r.operation?.id;
         } else {
           const r = await remote(`${M}/worlds:generate`, {
             method: 'POST',
@@ -429,7 +478,7 @@ async function handle(req: Request) {
               state = 'complete';
               result = r.resource?.id
                 ? await remote(
-                    `${M}/worlds/${encodeURIComponent(r.resource.id)}`,
+                    `${M}/${j.provider === 'character' ? 'models' : 'worlds'}/${encodeURIComponent(r.resource.id)}`,
                     {
                       headers: {
                         Authorization: `Bearer ${runtime().MINT_API_KEY}`,
@@ -446,6 +495,16 @@ async function handle(req: Request) {
                   ? 'Mint needs additional credits.'
                   : 'Mint generation could not finish.';
             }
+          }
+          if (
+            j.provider === 'character' &&
+            state === 'complete' &&
+            !result?.assets?.glbUrl &&
+            !result?.assets?.optimizedGlbUrl
+          ) {
+            state = 'failed';
+            error =
+              'The provider finished without a downloadable character model.';
           }
           if (state !== 'running')
             await db()
