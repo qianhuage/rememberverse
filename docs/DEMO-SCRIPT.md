@@ -1,7 +1,7 @@
-# Meta Cemetery — 2-Minute Demo Script
+# Rememberverse — 2-Minute Demo Script
 
 **Format:** ~2 minutes, one browser window, sound off. Quiet delivery — this demo
-wins on feeling, not speed. Slow down where Lastcall speeds up.
+wins on feeling, not speed. Let the island breathe.
 
 ---
 
@@ -22,11 +22,11 @@ wins on feeling, not speed. Slow down where Lastcall speeds up.
 
 > "We have thousands of photos of the people and pets we love —
 > and nowhere that feels like *being with* their memory.
-> **Meta Cemetery gives every love a place.**"
+> **Rememberverse gives every love a place.**"
 
 ## 0:15 — The sanctuary
 
-**Do:** open the pre-generated demo world. Drift the camera slowly through the garden.
+**Do:** open `/?demo=dog`. Let the dog roam, click a meadow destination, then choose Follow.
 
 > "An island for every story. Classical pavilion, cypress trees, a pond that
 > remembers the sky. A world you can return to."
@@ -43,7 +43,7 @@ wins on feeling, not speed. Slow down where Lastcall speeds up.
 
 ## 1:00 — Being there
 
-**Do:** enter the island. Orbit the pavilion, move close to the portrait and companion.
+**Do:** enter the island. Walk the dog with WASD, hold Shift to run, then orbit the garden.
 **Light a candle. Leave flowers. Save a short note.** Open the memory book.
 Then go back to *My islands* and **reopen it**.
 
@@ -57,7 +57,7 @@ Then go back to *My islands* and **reopen it**.
 **Do:** open the pre-generated immersive splat world (Spark viewer), walk a few steps.
 
 > "The islands themselves are generated — this world came from **World Labs Marble**
-> [or **Mint**, whichever produced the shown asset — name the real one], explored
+> and the detailed living island and dog came from **Mint**. The Dream world is explored
 > in-browser with **Spark** Gaussian splats. And the memorial itself can become a
 > 3D keepsake you keep." *(show the GLB keepsake if loaded)*
 
@@ -67,7 +67,7 @@ Then go back to *My islands* and **reopen it**.
 
 > "This isn't about replacing someone. It's a place to keep loving them.
 > Next: shared family visits — same island, explicitly controlled privacy.
-> **Meta Cemetery. Every love gets a place.**"
+> **Rememberverse. Every love gets a place.**"
 
 ---
 
