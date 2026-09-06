@@ -340,7 +340,7 @@ export default function Home() {
         >
           <Flower2 size={28} />
           <span>
-            meta cemetery<span className="brand-sub">A PLACE TO REMEMBER</span>
+            Rememberverse<span className="brand-sub">A PLACE TO REMEMBER</span>
           </span>
         </a>
         <nav>

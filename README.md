@@ -1,4 +1,4 @@
-# Meta Cemetery
+# Rememberverse
 
 An independent memorial-island product and spatial hackathon demo. Built separately from Vibetail, reusing only the authorized provider configuration and relevant integration patterns.
 

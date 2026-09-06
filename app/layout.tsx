@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 export const metadata: Metadata = {
-  title: 'Meta Cemetery — A little island. A lifetime of love.',
+  title: 'Rememberverse — A little island. A lifetime of love.',
   description:
     'Create a peaceful memorial island from photos and memories of the people and pets you love.',
 };

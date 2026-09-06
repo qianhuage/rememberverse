@@ -293,7 +293,7 @@ async function handle(req: Request) {
             method: 'POST',
             headers,
             body: JSON.stringify({
-              display_name: `Meta Cemetery — ${island.name}`,
+              display_name: `Rememberverse — ${island.name}`,
               model: 'marble-1.1',
               world_prompt,
             }),

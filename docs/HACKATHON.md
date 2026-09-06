@@ -1,4 +1,4 @@
-# Meta Cemetery — submission and presentation kit
+# Rememberverse — submission and presentation kit
 
 A little island for a lifetime of love. Photos and memories of people and pets become personal, explorable memorial gardens.
 
@@ -12,7 +12,7 @@ Source: [Spatial Intelligence Hackathon Resources](https://app.notion.com/p/fdot
 
 ## Two-minute presentation
 
-0:00–0:15 — “We have thousands of photos of the people and pets we love, but nowhere that feels like being with their memory. Meta Cemetery gives every love a place.”
+0:00–0:15 — “We have thousands of photos of the people and pets we love, but nowhere that feels like being with their memory. Rememberverse gives every love a place.”
 
 0:15–0:35 — Open the sanctuary. Enter the pre-generated demo world and move the camera through the garden. “An island for every story. A world you can return to.”
 
@@ -45,4 +45,4 @@ Use the saved generated world from public/demo-world.json. This is pre-generated
 - Remember Metaverse: https://x.com/RememberNFT — floating limestone archipelagos, classical stone halls, cypress trees, sunlit clouds.
 - Memorial Stones: https://nftcalendar.io/event/memorial-stones/ — sculptural marble stones, metallic orbit rings, pearl-like light.
 
-No blockchain, NFT sale, or financial workflow is necessary for this prototype. Remember is an aesthetic reference; Meta Cemetery uses its own generated artwork and authored 3D environment.
+No blockchain, NFT sale, or financial workflow is necessary for this prototype. Remember is an aesthetic reference; Rememberverse uses its own generated artwork and authored 3D environment.

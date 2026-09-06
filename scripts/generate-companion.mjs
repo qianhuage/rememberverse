@@ -14,7 +14,7 @@ const r = await fetch('https://api.mint.gg/v1/models:generate', {
   body: JSON.stringify({
     prompt:
       'A beautiful stylized small white and cream fluffy cat with round expressive kind dark eyes, sitting with a gently curling tail and looking up. Elegant premium collectible character, soft sculpted fur details, warm ivory fur with pale apricot ears, little gold collar with round pendant, peaceful friendly face. Pixar quality but subtle and tasteful, physically based detailed materials, single isolated character full body, no ground, no background, no text. Ready for a peaceful memorial garden interactive game.',
-    name: 'Mochi — Meta Cemetery companion',
+    name: 'Mochi — Rememberverse companion',
     generationMode: 'auto',
     generationPreset: 'standard',
   }),
